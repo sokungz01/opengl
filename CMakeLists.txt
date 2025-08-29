@@ -48,6 +48,8 @@ set(PROJECTS
   2_triangle
   3_moving_object
   4_sierpinski
+  
+  6_shader
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
