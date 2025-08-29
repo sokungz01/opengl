@@ -46,6 +46,8 @@ set(LIBS ${LIBS} ${APPLE_LIBS})
 set(PROJECTS
   1_window
   2_triangle
+  3_moving_object
+  4_tangram
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
