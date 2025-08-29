@@ -50,6 +50,7 @@ set(PROJECTS
   4_sierpinski
   
   6_shader
+  6.1_shader_uniform
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
