@@ -51,6 +51,7 @@ set(PROJECTS
   
   6_shader
   6.1_shader_uniform
+  6.2_shader_sierpinski
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
