@@ -48,7 +48,7 @@ set(PROJECTS
   2_triangle
   3_moving_object
   4_sierpinski
-  
+  5_fractal
   6_shader
   6.1_shader_uniform
   6.2_shader_sierpinski
