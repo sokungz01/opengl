@@ -52,10 +52,14 @@ set(PROJECTS
   6_shader
   6.1_shader_uniform
   6.2_shader_sierpinski
+  7_texture_combined
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
 include_directories(${CMAKE_BINARY_DIR}/configuration)
+
+add_library(STB_IMAGE "src/stb_image.cpp")
+set(LIBS ${LIBS} STB_IMAGE)
 
 add_library(GLAD "src/glad.c")
 set(LIBS ${LIBS} GLAD)
