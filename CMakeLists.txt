@@ -53,6 +53,7 @@ set(PROJECTS
   6.1_shader_uniform
   6.2_shader_sierpinski
   7_texture_combined
+  8_transformations
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
