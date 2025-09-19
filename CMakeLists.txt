@@ -55,6 +55,7 @@ set(PROJECTS
   7_texture_combined
   8_transformations
   9_sort
+  10_camera
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
