@@ -42,20 +42,30 @@ SET(APPLE_LIBS ${COCOA_LIBRARY} ${IOKit_LIBRARY} ${OpenGL_LIBRARY} ${CoreVideo_L
 SET(APPLE_LIBS ${APPLE_LIBS} ${GLFW3_LIBRARY} ${ASSIMP_LIBRARY} ${FREETYPE_LIBRARIES})
 set(LIBS ${LIBS} ${APPLE_LIBS})
 
-# Set Project to build
-set(PROJECTS
+# Set WORKSPACES to build
+set(WORKSPACES
+    assignment
+    playground
+)
+
+set(
+  assignment
+  assignment_0
+  assignment_1
+)
+
+set(
+  playground
   1_window
   2_triangle
   3_moving_object
-  4_sierpinski
-  5_fractal
-  6_shader
-  6.1_shader_uniform
-  6.2_shader_sierpinski
-  7_texture_combined
-  8_transformations
-  9_assignment_1
-  10_camera
+  4_fractal
+  5_shader
+  5.1_shader_uniform
+  5.2_shader_sierpinski
+  6_texture_combined
+  7_transformations
+  8_camera
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
@@ -71,50 +81,77 @@ macro(makeLink src dest target)
   add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest}  DEPENDS  ${dest} COMMENT "mklink ${src} -> ${dest}")
 endmacro()
 
-function(create_project_from_sources chapter)
+function(create_project_from_sources workspace demo)
 	file(GLOB SOURCE
-            "src/${chapter}/*.h"
-            "src/${chapter}/*.cpp"
-            "src/${chapter}/*.vs"
-            "src/${chapter}/*.fs"
-            "src/${chapter}/*.tcs"
-            "src/${chapter}/*.tes"
-            "src/${chapter}/*.gs"
-            "src/${chapter}/*.cs"
+            "src/${workspace}/${demo}/*.h"
+            "src/${workspace}/${demo}/*.cpp"
+            "src/${workspace}/${demo}/*.vs"
+            "src/${workspace}/${demo}/*.fs"
+            "src/${workspace}/${demo}/*.tcs"
+            "src/${workspace}/${demo}/*.tes"
+            "src/${workspace}/${demo}/*.gs"
+            "src/${workspace}/${demo}/*.cs"
     )
-	set(NAME "${chapter}")
-  add_executable(${NAME} ${SOURCE})
-  target_link_libraries(${NAME} ${LIBS})
-  if(MSVC)
-  target_compile_options(${NAME} PRIVATE /std:c++17 /MP)
-      target_link_options(${NAME} PUBLIC /ignore:4099)
-  endif(MSVC)
-  set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-  set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-  set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${chapter}")
-  # copy shader files to build directory
-  file(GLOB SHADERS
-            "src/${chapter}/*.vs"
-            "src/${chapter}/*.fs"
-            "src/${chapter}/*.tcs"
-            "src/${chapter}/*.tes"
-            "src/${chapter}/*.gs"
-            "src/${chapter}/*.cs"
-  )
-# copy dlls
-file(GLOB DLLS "dlls/*.dll")
-  foreach(SHADER ${SHADERS})
-    get_filename_component(SHADERNAME ${SHADER} NAME)
-    makeLink(${SHADER} ${CMAKE_SOURCE_DIR}/bin/${chapter}/${SHADERNAME} ${NAME})
-  endforeach(SHADER)
-  if(MSVC)
-      configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
-  endif(MSVC)
+	if (demo STREQUAL "")
+		SET(replaced "")
+		string(REPLACE "/" "_" replaced ${workspace})
+		set(NAME ${replaced})
+	else()
+		set(NAME "${workspace}__${demo}")
+	endif()
+    add_executable(${NAME} ${SOURCE})
+    target_link_libraries(${NAME} ${LIBS})
+    if(MSVC)
+		target_compile_options(${NAME} PRIVATE /std:c++17 /MP)
+        target_link_options(${NAME} PUBLIC /ignore:4099)
+    endif(MSVC)
+    if(WIN32)
+        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${workspace}")
+        set_target_properties(${NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${workspace}/Debug")
+    elseif(UNIX AND NOT APPLE)
+        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${workspace}")
+    elseif(APPLE)
+        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${workspace}")
+        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/${workspace}")
+        set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/${workspace}")
+    endif(WIN32)
+    # copy shader files to build directory
+    file(GLOB SHADERS
+             "src/${workspace}/${demo}/*.vs"
+             # "src/${workspace}/${demo}/*.frag"
+             "src/${workspace}/${demo}/*.fs"
+             "src/${workspace}/${demo}/*.tcs"
+             "src/${workspace}/${demo}/*.tes"
+             "src/${workspace}/${demo}/*.gs"
+             "src/${workspace}/${demo}/*.cs"
+    )
+	# copy dlls
+	file(GLOB DLLS "dlls/*.dll")
+    foreach(SHADER ${SHADERS})
+        if(WIN32)
+            # configure_file(${SHADER} "test")
+            add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
+			add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLLS} $<TARGET_FILE_DIR:${NAME}>)
+        elseif(UNIX AND NOT APPLE)
+            file(COPY ${SHADER} DESTINATION ${CMAKE_SOURCE_DIR}/bin/${workspace})
+        elseif(APPLE)
+            # create symbolic link for *.vs *.fs *.gs
+            get_filename_component(SHADERNAME ${SHADER} NAME)
+            makeLink(${SHADER} ${CMAKE_SOURCE_DIR}/bin/${workspace}/${SHADERNAME} ${NAME})
+        endif(WIN32)
+    endforeach(SHADER)
+    # if compiling for visual studio, also use configure file for each project (specifically to set up working directory)
+    if(MSVC)
+        configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${NAME}.vcxproj.user @ONLY)
+    endif(MSVC)
 endfunction()
 
+
 # then create a project file per tutorial
-foreach(PROJECTS ${PROJECTS})
-  create_project_from_sources(${PROJECTS})
-endforeach(PROJECTS)
+foreach(WORKSPACE ${WORKSPACES})
+    foreach(DEMO ${${WORKSPACE}})
+		create_project_from_sources(${WORKSPACE} ${DEMO})
+    endforeach(DEMO)
+endforeach(WORKSPACE)
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
