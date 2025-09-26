@@ -31,4 +31,4 @@ Placeholders below — replace with actual filenames present in this directory i
 
 ## Visualize
 
-![](/.github/images/assignment_1_sort_visualize.gif)
+<img src="/.github/images/assignment_1_sort_visualize.gif" alt="sort visualization" width="900" />
