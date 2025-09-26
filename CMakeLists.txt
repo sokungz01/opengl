@@ -54,7 +54,7 @@ set(PROJECTS
   6.2_shader_sierpinski
   7_texture_combined
   8_transformations
-  9_sort
+  9_assignment_1
   10_camera
 )
 
