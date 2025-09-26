@@ -68,10 +68,13 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
+        // Project the front vector onto the horizontal (XZ) plane so moving forward/backward
+        // does not change the camera's Y position (no vertical drift when looking up/down).
+        glm::vec3 frontXZ = glm::normalize(glm::vec3(Front.x, 0.0f, Front.z));
         if (direction == FORWARD)
-            Position += Front * velocity;
+            Position += frontXZ * velocity;
         if (direction == BACKWARD)
-            Position -= Front * velocity;
+            Position -= frontXZ * velocity;
         if (direction == LEFT)
             Position -= Right * velocity;
         if (direction == RIGHT)
