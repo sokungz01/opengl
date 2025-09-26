@@ -1,4 +1,4 @@
-# 9_assignment_1 — Sort visualizer (OpenGL)
+# Assignment 1 (10 points): 2D animation, generative art
 
 ## Overview
 
