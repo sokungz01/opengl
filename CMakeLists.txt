@@ -1,10 +1,10 @@
 cmake_minimum_required (VERSION 3.0)
 cmake_policy(VERSION 3.0)
 
-set(CMAKE_OSX_ARCHITECTURES "arm64")
 
 project(Template)
 
+set(CMAKE_OSX_ARCHITECTURES "arm64")
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
     CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
@@ -52,6 +52,7 @@ set(
   assignment
   assignment_0
   assignment_1
+  assignment_2
 )
 
 set(
