@@ -6,7 +6,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <learnopengl/filesystem.h>
 #include <learnopengl/shader_m.h>
 #include <learnopengl/camera.h>
 
@@ -14,16 +13,18 @@
 #include <vector>
 #include <cmath>
 
+unsigned int setupCubeVAO(const float* vertices, size_t size, unsigned int &VBO);
+void setupQuad(unsigned int &quadVAO, unsigned int &quadVBO);
+void createTentacleMesh(unsigned int &tentVAO, unsigned int &tentVBO, unsigned int &tentEBO, unsigned int &tentIndexCount);
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 
-// settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -77,11 +78,7 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile our shader zprogram
-    // ------------------------------------
-    Shader lightingShader("6.multiple_lights.vs", "6.multiple_lights.fs");
-    Shader lightCubeShader("6.light_cube.vs", "6.light_cube.fs");
-    // background shader (fullscreen textured quad)
+    Shader lightingShader("lights.vs", "lights.fs");
     Shader bgShader("bg.vs", "bg.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -130,10 +127,9 @@ int main()
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
-    // tentacle + body parameters
     const int NUM_TENTACLES = 8;
-    const int SEGMENTS_PER_TENTACLE = 8;
-    const float SEGMENT_LENGTH = 0.45f;
+    const int SEGMENTS_PER_TENTACLE = 8; // more segments -> smoother/longer curve
+    const float SEGMENT_LENGTH = 0.55f;   // increased base segment length for longer tentacles
 
     // body: center position and scale
     glm::vec3 bodyCenter = glm::vec3(0.0f, -0.4f, 0.0f);
@@ -159,19 +155,7 @@ int main()
     };
     // first, configure the cube's VAO (and VBO)
     unsigned int VBO, cubeVAO;
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &VBO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindVertexArray(cubeVAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    cubeVAO = setupCubeVAO(vertices, sizeof(vertices), VBO);
 
     // fullscreen quad for background (two triangles)
     float quadVertices[] = {
@@ -185,33 +169,22 @@ int main()
          1.0f,  1.0f,  1.0f, 1.0f
     };
     unsigned int quadVAO, quadVBO;
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    setupQuad(quadVAO, quadVBO);
 
-    // load textures (we now use a utility function to keep the code more organized)
-    // -----------------------------------------------------------------------------
-    unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/octopus-tentacles.png").c_str());
-    unsigned int specularMap = loadTexture(FileSystem::getPath("resources/textures/octopus-tentacles-specular.png").c_str());
+    unsigned int tentVAO = 0, tentVBO = 0, tentEBO = 0;
+    unsigned int tentIndexCount = 0;
+    createTentacleMesh(tentVAO, tentVBO, tentEBO, tentIndexCount);
 
-    // Some face images may be upside-down relative to OpenGL UV origin.
-    // Flip these on load so the face appears upright on the head.
+    unsigned int diffuseMap = loadTexture("resources/textures/octopus-tentacles.png");
+    unsigned int specularMap = loadTexture("resources/textures/octopus-tentacles-specular.png");
+
     stbi_set_flip_vertically_on_load(true);
-    unsigned int faceDiffuse = loadTexture(FileSystem::getPath("resources/textures/octopus-face.png").c_str());
-    unsigned int faceSpecular = loadTexture(FileSystem::getPath("resources/textures/octopus-face-specular.png").c_str());
-
-    // background texture (deep ocean)
-    unsigned int backgroundTex = loadTexture(FileSystem::getPath("resources/textures/deep-ocean.png").c_str());
+    unsigned int faceDiffuse = loadTexture("resources/textures/octopus-face.png");
+    unsigned int faceSpecular = loadTexture("resources/textures/octopus-face-specular.png");
+    stbi_set_flip_vertically_on_load(false);
+    unsigned int backgroundTex = loadTexture("resources/textures/deep-ocean.png");
     bgShader.use();
     bgShader.setInt("backgroundTex", 4);
-    // restore default (don't flip other textures unless needed)
-    stbi_set_flip_vertically_on_load(false);
 
     // shader configuration
     // --------------------
@@ -238,6 +211,10 @@ int main()
     lightingShader.setVec3("glowColor", glm::vec3(0.5f, 0.6f, 0.9f));
     lightingShader.setFloat("glowStrength", 0.25f);
     lightingShader.setFloat("glowPower", 2.5f);
+
+    // bioluminescence parameters (tweakable)
+    glm::vec3 biolumColor = glm::vec3(0.2f, 0.9f, 0.8f);
+    float biolumStrength = 0.9f;
 
 
     // render loop
@@ -403,36 +380,56 @@ int main()
                 float time = currentFrame;
                 float tentaclePhase = t * 0.6f;
 
-                // hierarchical build: at each segment we rotate, draw a scaled cube, then translate to the end
+                // compute outward direction from body center to tentacle base (used to curve outward)
+                glm::vec3 baseToTent = glm::normalize(glm::vec3(tentacleBases[t].x - bodyCenter.x, 0.0f, tentacleBases[t].z - bodyCenter.z));
+                // bend axis is perpendicular to up and outward direction
+                glm::vec3 bendAxis = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), baseToTent));
+
+                // extension pulse: drives how much tentacles extend/contract (0..1)
+                float extendPulse = 0.5f + 0.5f * sin(time * 1.6f + tentaclePhase);
+
+                // hierarchical build: at each segment we rotate, draw a tapered cylinder segment, then translate to the end
                 glm::mat4 jointTransform = baseModel;
                 for (int s = 0; s < SEGMENTS_PER_TENTACLE; ++s)
                 {
-                    // angle decays along the tentacle so the tip is less influential
+                    // decay along the tentacle so the tip is more flexible
                     float decay = 1.0f - (float)s / (float)SEGMENTS_PER_TENTACLE;
-                    float yaw = sin(time * 2.0f + tentaclePhase + s * 0.25f) * glm::radians(25.0f) * decay;
-                    float pitch = cos(time * 1.5f + tentaclePhase + s * 0.33f) * glm::radians(18.0f) * decay;
 
-                    // apply rotations around local axes
+                    // small local oscillation for liveliness (reduced amplitude)
+                    float yaw = sin(time * 1.9f + tentaclePhase + s * 0.22f) * glm::radians(8.0f) * decay;
+                    float pitch = cos(time * 1.4f + tentaclePhase + s * 0.31f) * glm::radians(6.0f) * decay;
+
+                    // base curvature that bows the tentacle outward; larger when extended
+                    float baseBend = glm::radians(40.0f) * extendPulse * (0.6f + 0.4f * decay);
+
+                    // apply small local oscillations first
                     jointTransform = glm::rotate(jointTransform, yaw, glm::vec3(0.0f, 1.0f, 0.0f));
                     jointTransform = glm::rotate(jointTransform, pitch, glm::vec3(0.0f, 0.0f, 1.0f));
 
+                    // then apply outward bowing around bendAxis to create a smooth curve
+                    jointTransform = glm::rotate(jointTransform, baseBend * decay, bendAxis);
+
                     // taper: base segments larger, tip smaller
                     float tscale = 0.6f + 0.9f * decay; // ranges ~1.5 at base -> ~0.6 at tip
-                    float radius = 0.25f * tscale; // radial scale
-                    float length = SEGMENT_LENGTH * (0.9f + 0.8f * decay); // slightly longer base segments
+                    float radius = 0.55f * tscale; // radial scale (increased for thicker tentacles)
+                    // length depends on decay and extendPulse (shorten when retracting)
+                    float length = SEGMENT_LENGTH * (0.9f + 0.8f * decay) * (0.75f + 0.65f * extendPulse);
 
-                    // create model for this segment: translate half-length so cube centers correctly, then scale
+                    // create model for this segment: translate half-length so mesh centers correctly, then scale
                     glm::mat4 segmentModel = jointTransform;
                     segmentModel = glm::translate(segmentModel, glm::vec3(0.0f, length * 0.5f, 0.0f));
                     // scale Y by length and X/Z by radius to taper
                     segmentModel = glm::scale(segmentModel, glm::vec3(radius, length, radius));
 
                     lightingShader.setMat4("model", segmentModel);
-                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                    // bind tentacle mesh and draw
+                    glBindVertexArray(tentVAO);
+                    glDrawElements(GL_TRIANGLES, tentIndexCount, GL_UNSIGNED_INT, 0);
 
                     // move jointTransform to the end of this segment to place the next rotation pivot
                     jointTransform = glm::translate(jointTransform, glm::vec3(0.0f, length, 0.0f));
                 }
+                glBindVertexArray(0);
             }
 
             glfwSwapBuffers(window);
@@ -442,6 +439,10 @@ int main()
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &quadVAO);
     glDeleteBuffers(1, &quadVBO);
+    // cleanup tentacle mesh
+    if (tentVAO) glDeleteVertexArrays(1, &tentVAO);
+    if (tentVBO) glDeleteBuffers(1, &tentVBO);
+    if (tentEBO) glDeleteBuffers(1, &tentEBO);
     glfwTerminate();
     return 0;
 }
@@ -522,4 +523,155 @@ unsigned int loadTexture(char const * path)
     }
 
     return textureID;
+}
+
+// --- helper implementations -------------------------------------------------
+unsigned int setupCubeVAO(const float* vertices, size_t size, unsigned int &VBO)
+{
+    unsigned int cubeVAO;
+    glGenVertexArrays(1, &cubeVAO);
+    glGenBuffers(1, &VBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+
+    glBindVertexArray(cubeVAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glBindVertexArray(0);
+    return cubeVAO;
+}
+
+void setupQuad(unsigned int &quadVAO, unsigned int &quadVBO)
+{
+    float quadVertices[] = {
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glBindVertexArray(0);
+}
+
+void createTentacleMesh(unsigned int &tentVAO, unsigned int &tentVBO, unsigned int &tentEBO, unsigned int &tentIndexCount)
+{
+    const int radialSegments = 50;
+    const float unitHeight = 1.0f;
+    const float halfH = 0.5f * unitHeight;
+
+    std::vector<float> tentVertices; // layout: pos(3), normal(3), tex(2)
+    std::vector<unsigned int> tentIndices;
+
+    // side vertices (two rings)
+    for (int y = 0; y < 2; ++y)
+    {
+        float vy = (y == 0) ? -halfH : halfH;
+        float vTexY = (y == 0) ? 0.0f : 1.0f;
+        for (int i = 0; i < radialSegments; ++i)
+        {
+            float theta = (float)i / (float)radialSegments * glm::two_pi<float>();
+            float x = cos(theta);
+            float z = sin(theta);
+            // position (radius will be applied by model scale)
+            tentVertices.push_back(x * 0.5f);
+            tentVertices.push_back(vy);
+            tentVertices.push_back(z * 0.5f);
+            // normal
+            tentVertices.push_back(x);
+            tentVertices.push_back(0.0f);
+            tentVertices.push_back(z);
+            // texcoord
+            tentVertices.push_back((float)i / (float)radialSegments);
+            tentVertices.push_back(vTexY);
+        }
+    }
+
+    // side indices (quads -> two triangles)
+    for (int i = 0; i < radialSegments; ++i)
+    {
+        int next = (i + 1) % radialSegments;
+        int bottom = i * 2;
+        int top = bottom + 1;
+        int nextBottom = next * 2;
+        int nextTop = nextBottom + 1;
+
+        tentIndices.push_back(bottom);
+        tentIndices.push_back(nextBottom);
+        tentIndices.push_back(nextTop);
+        tentIndices.push_back(bottom);
+        tentIndices.push_back(nextTop);
+        tentIndices.push_back(top);
+    }
+
+    // bottom cap center
+    unsigned int bottomCenterIndex = (unsigned int)(tentVertices.size() / 8);
+    tentVertices.push_back(0.0f); tentVertices.push_back(-halfH); tentVertices.push_back(0.0f);
+    tentVertices.push_back(0.0f); tentVertices.push_back(-1.0f); tentVertices.push_back(0.0f);
+    tentVertices.push_back(0.5f); tentVertices.push_back(0.5f);
+    for (int i = 0; i < radialSegments; ++i)
+    {
+        int next = (i + 1) % radialSegments;
+        int bi = i * 2;      // bottom ring vertex index
+        int bnext = next * 2;
+        tentIndices.push_back(bottomCenterIndex);
+        tentIndices.push_back(bnext);
+        tentIndices.push_back(bi);
+    }
+
+    // top cap center
+    unsigned int topCenterIndex = (unsigned int)(tentVertices.size() / 8);
+    tentVertices.push_back(0.0f); tentVertices.push_back(halfH); tentVertices.push_back(0.0f);
+    tentVertices.push_back(0.0f); tentVertices.push_back(1.0f); tentVertices.push_back(0.0f);
+    tentVertices.push_back(0.5f); tentVertices.push_back(0.5f);
+    for (int i = 0; i < radialSegments; ++i)
+    {
+        int next = (i + 1) % radialSegments;
+        int ti = i * 2 + 1;      // top ring vertex index
+        int tnext = next * 2 + 1;
+        tentIndices.push_back(topCenterIndex);
+        tentIndices.push_back(ti);
+        tentIndices.push_back(tnext);
+    }
+
+    tentIndexCount = (unsigned int)tentIndices.size();
+
+    // create GL buffers
+    glGenVertexArrays(1, &tentVAO);
+    glGenBuffers(1, &tentVBO);
+    glGenBuffers(1, &tentEBO);
+
+    glBindVertexArray(tentVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, tentVBO);
+    glBufferData(GL_ARRAY_BUFFER, tentVertices.size() * sizeof(float), tentVertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tentEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, tentIndices.size() * sizeof(unsigned int), tentIndices.data(), GL_STATIC_DRAW);
+
+    // vertex layout: pos(3), normal(3), tex(2) => stride 8 floats
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+    // unbind VAO
+    glBindVertexArray(0);
 }
