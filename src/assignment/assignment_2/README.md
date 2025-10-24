@@ -2,7 +2,7 @@
 
 ## Overview
 
-This assignment implements an animated 3D "octopus" sculpture using OpenGL. The scene demonstrates hierarchical modelling, skeletal-like tentacle animation, multiple light sources (directional, point, and spot lights), textured materials, and a fullscreen background. The octopus body and head are drawn from a cube mesh with different texture regions; the tentacles are generated as tapered cylinder segments and animated procedurally.
+This assignment implements an animated 3D "octopus" sculpture using OpenGL. The scene demonstrates hierarchical modelling, tentacle animation, multiple light sources (directional, point, and spot lights), textured materials, and a fullscreen background. The octopus body and head are drawn from a cube mesh with different texture regions; the tentacles are generated as tapered cylinder segments and animated procedurally.
 
 ## Features
 
@@ -47,3 +47,10 @@ Textures used by this assignment are stored in:
 | ------------------------------------------------------------------------------------------ |
 | <img src="/.github/images/assignment_2_3d_sculpture.png" alt="3d sculpture" width="900" /> |
 | <img src="/.github/images/assignment_2_3d_sculpture.gif" alt="3d sculpture" width="900" /> |
+
+https://github.com/user-attachments/assets/673367c5-f5ae-4adc-ab35-bab34f70ad17
+
+## Credits
+
+- Background image: Deepocean [Unsplash](https://unsplash.com/photos/blue-water-with-white-bubbles-3o5oUjrD90w)
+- Textures drawn using: [Pixilart](https://www.pixilart.com/draw)
