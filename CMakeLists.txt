@@ -67,6 +67,7 @@ set(
   6_texture_combined
   7_transformations
   8_camera
+  9_model_animation
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
