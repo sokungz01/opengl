@@ -29,6 +29,10 @@ This section documents the model and interaction requirements implemented for th
   - Hold `V` for Front view (while `V` is pressed, switch to a front-facing camera; release to revert to the last camera mode).
   - Implementation tip: compute camera position relative to the car's position and orientation (offset behind/above for rear view; offset to the side for left/right). Lerp or smooth the camera for nicer motion.
 
+https://github.com/user-attachments/assets/235b3508-183e-4568-be60-a1299030d781
+
+
+
 ## Model Credits
 
 Models used or referenced for this assignment:
@@ -36,4 +40,9 @@ Models used or referenced for this assignment:
 - Gold coin model: https://www.cgtrader.com/free-3d-models/various/various-models/gold-coin-hand-painted
 - Car model: https://free3d.com/3d-model/ferrari-formula-1-72527.html
 
-## Visualize
+## Demo
+
+<img width="900" alt="visualize" src="https://github.com/user-attachments/assets/5b9cdb2f-68b0-4074-810c-6cb841e92a06" />
+
+https://github.com/user-attachments/assets/5e05f459-bdf0-4aca-a572-aeec108db1fb
+
