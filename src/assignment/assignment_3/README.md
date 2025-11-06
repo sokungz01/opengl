@@ -29,10 +29,6 @@ This section documents the model and interaction requirements implemented for th
   - Hold `V` for Front view (while `V` is pressed, switch to a front-facing camera; release to revert to the last camera mode).
   - Implementation tip: compute camera position relative to the car's position and orientation (offset behind/above for rear view; offset to the side for left/right). Lerp or smooth the camera for nicer motion.
 
-https://github.com/user-attachments/assets/235b3508-183e-4568-be60-a1299030d781
-
-
-
 ## Model Credits
 
 Models used or referenced for this assignment:
