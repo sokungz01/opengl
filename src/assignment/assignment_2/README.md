@@ -41,9 +41,9 @@ Textures used by this assignment are stored in:
 
 `src/assignment/assignment_2/resources/textures/`
 
-## Visualize
+## Demo
 
-| Visualize                                                                                  |
+| Demo                                                                                       |
 | ------------------------------------------------------------------------------------------ |
 | <img src="/.github/images/assignment_2_3d_sculpture.png" alt="3d sculpture" width="900" /> |
 | <img src="/.github/images/assignment_2_3d_sculpture.gif" alt="3d sculpture" width="900" /> |

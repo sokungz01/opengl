@@ -29,6 +29,6 @@ Placeholders below — replace with actual filenames present in this directory i
 
 - 1..5 — select algorithm (1 = insertion, 2 = selection, 3 = bubble, 4 = merge, 5 = quick)
 
-## Visualize
+## Demo
 
 <img src="/.github/images/assignment_1_sort_visualize.gif" alt="sort visualization" width="900" />
