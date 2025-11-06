@@ -4,7 +4,7 @@
 
 Car::Car()
         : Position(0.0f, 0.0f, 0.0f), Yaw(0.0f), Front(1.0f,0.0f, 0.0f),
-            Velocity(0.0f), MaxSpeed(24.0f), Accel(16.0f), Brake(18.0f), Friction(3.5f),
+            Velocity(0.0f), MaxSpeed(15.0f), Accel(16.0f), Brake(18.0f), Friction(2.5f),
             ModelCenter(0.0f), ModelForwardLocal(0.0f,0.0f,0.0f), PitchCorrection(0.0f), ModelRadius(1.0f)
 {
 }

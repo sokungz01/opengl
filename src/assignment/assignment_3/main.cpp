@@ -102,6 +102,7 @@ int main()
 
     Shader ourShader("shader.vs", "shader.fs");
     Model carModel(FileSystem::getPath("resources/objects/f1/f1.obj"));
+    Model coinModel(FileSystem::getPath("resources/objects/coin/Coin.obj"));
 
     Car car;
     car.init(carModel);
@@ -110,6 +111,8 @@ int main()
     ground.init(FileSystem::getPath("resources/textures/smooth-stone.png"));
 
     Coins coins;
+    // supply the coin model we loaded above so Coins can use it for rendering
+    coins.setModel(&coinModel);
     coins.init();
     coins.spawnRandom(randomCoins);
 
@@ -174,8 +177,9 @@ int main()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, whiteTexture);
         ourShader.setInt("texture_diffuse1", 0);
-        ourShader.setMat4("model", car.getModelMatrix());
-        carModel.Draw(ourShader);
+    ourShader.setMat4("model", car.getModelMatrix());
+    carModel.Draw(ourShader);
+
         glBindTexture(GL_TEXTURE_2D, 0);
 
         coins.draw(ourShader, whiteTexture);

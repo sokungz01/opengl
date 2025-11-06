@@ -11,8 +11,8 @@ void main()
 {    
     vec4 sampled = texture(texture_diffuse1, TexCoords);
     if (useColor) {
-        // multiply sampled alpha by objectColor; if white texture is used this yields solid color
-        FragColor = vec4(objectColor, sampled.a);
+        float alpha = (sampled.a == 0.0) ? 1.0 : sampled.a;
+        FragColor = vec4(sampled.rgb * objectColor, alpha);
     } else {
         FragColor = sampled;
     }
