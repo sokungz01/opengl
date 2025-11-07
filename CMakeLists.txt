@@ -69,6 +69,7 @@ set(
   7_transformations
   8_camera
   9_model_animation
+  10_skeleton_animation
 )
 
 configure_file(configuration/root_directory.h.in configuration/root_directory.h)
