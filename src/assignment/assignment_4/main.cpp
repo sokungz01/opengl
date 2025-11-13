@@ -105,12 +105,12 @@ int main()
 	// load models
 	// -----------
 	// idle 3.3, walk 2.06, run 0.83, punch 1.03, kick 1.6
-	Model ourModel(FileSystem::getPath("resources/objects/mixamo/kachujin.dae"));
-	Animation idleAnimation(FileSystem::getPath("resources/objects/mixamo/idle.dae"),&ourModel);
-	Animation walkAnimation(FileSystem::getPath("resources/objects/mixamo/walk.dae"), &ourModel);
-	Animation runAnimation(FileSystem::getPath("resources/objects/mixamo/run.dae"), &ourModel);
-	Animation punchAnimation(FileSystem::getPath("resources/objects/mixamo/punch.dae"), &ourModel);
-	Animation kickAnimation(FileSystem::getPath("resources/objects/mixamo/kick.dae"), &ourModel);
+	Model ourModel(FileSystem::getPath("resources/objects/lewis/lewis.dae"));
+	Animation idleAnimation(FileSystem::getPath("resources/objects/lewis/idle.dae"),&ourModel);
+	Animation walkAnimation(FileSystem::getPath("resources/objects/lewis/walk.dae"), &ourModel);
+	Animation runAnimation(FileSystem::getPath("resources/objects/lewis/run.dae"), &ourModel);
+	Animation punchAnimation(FileSystem::getPath("resources/objects/lewis/punch.dae"), &ourModel);
+	Animation kickAnimation(FileSystem::getPath("resources/objects/lewis/kick.dae"), &ourModel);
 	Animator animator(&idleAnimation);
 	enum AnimState charState = IDLE;
 	float blendAmount = 0.0f;
