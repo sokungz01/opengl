@@ -43,12 +43,7 @@ https://github.com/user-attachments/assets/70ecc2f1-d7ee-421d-947b-557e9ee74f6b
 
 - **Left Mouse Button** — Punch attack
 - **Right Mouse Button** — Kick attack
-
-### Camera
-
-- **Mouse Movement (Horizontal)** — Rotate character and camera view
-- **Mouse Scroll** — Zoom in/out (if enabled)
-
+  
 ### System
 
 - **Esc** — Exit application
