@@ -37,9 +37,6 @@ https://github.com/user-attachments/assets/70ecc2f1-d7ee-421d-947b-557e9ee74f6b
 ### Movement
 
 - **W** — Move forward (walk)
-- **S** — Turn around 180° and move forward
-- **A** — Rotate character left while moving
-- **D** — Rotate character right while moving
 - **Left Shift** — Run (hold while moving with WASD)
 
 ### Combat
