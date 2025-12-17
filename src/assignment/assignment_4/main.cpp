@@ -49,7 +49,10 @@ enum AnimState {
 	KICK_IDLE,
 	IDLE_WALK,
 	WALK_IDLE,
-	WALK
+	WALK,
+	RUN,
+	WALK_RUN,
+	RUN_WALK
 };
 
 int main()
@@ -195,24 +198,59 @@ int main()
 					blendAmount = 0.0f;
 					float startTime = animator.m_CurrentTime2;
 					animator.PlayAnimation(isRunning ? &runAnimation : &walkAnimation, NULL, startTime, 0.0f, blendAmount);
-					charState = isRunning ? WALK : WALK;
+					charState = isRunning ? RUN : WALK;
 				}
 				break;
 			case WALK:
-				// remain in walk or run while moving, otherwise transition to idle
+				// remain in walk while moving, transition to idle or run as needed
 				if (!isMoving) {
 					// start walk -> idle blend
 					blendAmount = 0.0f;
 					animator.PlayAnimation(&walkAnimation, &idleAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
 					charState = WALK_IDLE;
-				} else {
-					// if running state changed, transition accordingly
-					// if switching to run while walking
-					if (isRunning) {
-						blendAmount = 0.0f;
-						animator.PlayAnimation(&walkAnimation, &runAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
-						charState = IDLE_WALK; // reuse blending path
-					}
+				} else if (isRunning) {
+					// transition walk -> run smoothly
+					blendAmount = 0.0f;
+					animator.PlayAnimation(&walkAnimation, &runAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+					charState = WALK_RUN;
+				}
+				break;
+			case RUN:
+				// remain in run while moving and shift held, transition otherwise
+				if (!isMoving) {
+					// run -> idle (via walk for smoother transition)
+					blendAmount = 0.0f;
+					animator.PlayAnimation(&runAnimation, &idleAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+					charState = WALK_IDLE;
+				} else if (!isRunning) {
+					// transition run -> walk smoothly
+					blendAmount = 0.0f;
+					animator.PlayAnimation(&runAnimation, &walkAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+					charState = RUN_WALK;
+				}
+				break;
+			case WALK_RUN:
+				// blending from walk to run
+				blendAmount += blendRate;
+				blendAmount = fmod(blendAmount, 1.0f);
+				animator.PlayAnimation(&walkAnimation, &runAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+				if (blendAmount > 0.9f) {
+					blendAmount = 0.0f;
+					float startTime = animator.m_CurrentTime2;
+					animator.PlayAnimation(&runAnimation, NULL, startTime, 0.0f, blendAmount);
+					charState = RUN;
+				}
+				break;
+			case RUN_WALK:
+				// blending from run to walk
+				blendAmount += blendRate;
+				blendAmount = fmod(blendAmount, 1.0f);
+				animator.PlayAnimation(&runAnimation, &walkAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+				if (blendAmount > 0.9f) {
+					blendAmount = 0.0f;
+					float startTime = animator.m_CurrentTime2;
+					animator.PlayAnimation(&walkAnimation, NULL, startTime, 0.0f, blendAmount);
+					charState = WALK;
 				}
 				break;
 			case WALK_IDLE:
