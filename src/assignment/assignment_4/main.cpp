@@ -52,7 +52,15 @@ enum AnimState {
 	WALK,
 	RUN,
 	WALK_RUN,
-	RUN_WALK
+	RUN_WALK,
+	WALK_PUNCH,
+	PUNCH_WALK,
+	WALK_KICK,
+	KICK_WALK,
+	RUN_PUNCH,
+	PUNCH_RUN,
+	RUN_KICK,
+	KICK_RUN
 };
 
 int main()
@@ -163,18 +171,34 @@ int main()
 			modelYaw = atan2(dirNorm.x, -dirNorm.z); // yaw so that forward is -Z
 		}
 
-		// Mouse click triggers (only on edge)
+		// Mouse click triggers (only on edge) - transition based on current state
 		if (leftPressed && !prevLeftMouse) {
-			// punch
+			// punch from current state
 			blendAmount = 0.0f;
-			animator.PlayAnimation(&idleAnimation, &punchAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
-			charState = IDLE_PUNCH;
+			if (charState == WALK) {
+				animator.PlayAnimation(&walkAnimation, &punchAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+				charState = WALK_PUNCH;
+			} else if (charState == RUN) {
+				animator.PlayAnimation(&runAnimation, &punchAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+				charState = RUN_PUNCH;
+			} else {
+				animator.PlayAnimation(&idleAnimation, &punchAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+				charState = IDLE_PUNCH;
+			}
 		}
 		if (rightPressed && !prevRightMouse) {
-			// kick
+			// kick from current state
 			blendAmount = 0.0f;
-			animator.PlayAnimation(&idleAnimation, &kickAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
-			charState = IDLE_KICK;
+			if (charState == WALK) {
+				animator.PlayAnimation(&walkAnimation, &kickAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+				charState = WALK_KICK;
+			} else if (charState == RUN) {
+				animator.PlayAnimation(&runAnimation, &kickAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+				charState = RUN_KICK;
+			} else {
+				animator.PlayAnimation(&idleAnimation, &kickAnimation, animator.m_CurrentTime, 0.0f, blendAmount);
+				charState = IDLE_KICK;
+			}
 		}
 
 		prevLeftMouse = leftPressed;
@@ -309,6 +333,102 @@ int main()
 						float startTime = animator.m_CurrentTime2;
 						animator.PlayAnimation(&idleAnimation, NULL, startTime, 0.0f, blendAmount);
 						charState = IDLE;
+					}
+				}
+				break;
+			case WALK_PUNCH:
+				blendAmount += blendRate;
+				blendAmount = fmod(blendAmount, 1.0f);
+				animator.PlayAnimation(&walkAnimation, &punchAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+				if (blendAmount > 0.9f) {
+					blendAmount = 0.0f;
+					float startTime = animator.m_CurrentTime2;
+					animator.PlayAnimation(&punchAnimation, NULL, startTime, 0.0f, blendAmount);
+					charState = PUNCH_WALK;
+				}
+				break;
+			case PUNCH_WALK:
+				if (animator.m_CurrentTime > 0.7f) {
+					blendAmount += blendRate;
+					blendAmount = fmod(blendAmount, 1.0f);
+					animator.PlayAnimation(&punchAnimation, &walkAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+					if (blendAmount > 0.9f) {
+						blendAmount = 0.0f;
+						float startTime = animator.m_CurrentTime2;
+						animator.PlayAnimation(&walkAnimation, NULL, startTime, 0.0f, blendAmount);
+						charState = WALK;
+					}
+				}
+				break;
+			case WALK_KICK:
+				blendAmount += blendRate;
+				blendAmount = fmod(blendAmount, 1.0f);
+				animator.PlayAnimation(&walkAnimation, &kickAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+				if (blendAmount > 0.9f) {
+					blendAmount = 0.0f;
+					float startTime = animator.m_CurrentTime2;
+					animator.PlayAnimation(&kickAnimation, NULL, startTime, 0.0f, blendAmount);
+					charState = KICK_WALK;
+				}
+				break;
+			case KICK_WALK:
+				if (animator.m_CurrentTime > 1.0f) {
+					blendAmount += blendRate;
+					blendAmount = fmod(blendAmount, 1.0f);
+					animator.PlayAnimation(&kickAnimation, &walkAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+					if (blendAmount > 0.9f) {
+						blendAmount = 0.0f;
+						float startTime = animator.m_CurrentTime2;
+						animator.PlayAnimation(&walkAnimation, NULL, startTime, 0.0f, blendAmount);
+						charState = WALK;
+					}
+				}
+				break;
+			case RUN_PUNCH:
+				blendAmount += blendRate;
+				blendAmount = fmod(blendAmount, 1.0f);
+				animator.PlayAnimation(&runAnimation, &punchAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+				if (blendAmount > 0.9f) {
+					blendAmount = 0.0f;
+					float startTime = animator.m_CurrentTime2;
+					animator.PlayAnimation(&punchAnimation, NULL, startTime, 0.0f, blendAmount);
+					charState = PUNCH_RUN;
+				}
+				break;
+			case PUNCH_RUN:
+				if (animator.m_CurrentTime > 0.7f) {
+					blendAmount += blendRate;
+					blendAmount = fmod(blendAmount, 1.0f);
+					animator.PlayAnimation(&punchAnimation, &runAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+					if (blendAmount > 0.9f) {
+						blendAmount = 0.0f;
+						float startTime = animator.m_CurrentTime2;
+						animator.PlayAnimation(&runAnimation, NULL, startTime, 0.0f, blendAmount);
+						charState = RUN;
+					}
+				}
+				break;
+			case RUN_KICK:
+				blendAmount += blendRate;
+				blendAmount = fmod(blendAmount, 1.0f);
+				animator.PlayAnimation(&runAnimation, &kickAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+				if (blendAmount > 0.9f) {
+					blendAmount = 0.0f;
+					float startTime = animator.m_CurrentTime2;
+					animator.PlayAnimation(&kickAnimation, NULL, startTime, 0.0f, blendAmount);
+					charState = KICK_RUN;
+				}
+				break;
+			case KICK_RUN:
+				if (animator.m_CurrentTime > 1.0f) {
+					blendAmount += blendRate;
+					blendAmount = fmod(blendAmount, 1.0f);
+					animator.PlayAnimation(&kickAnimation, &runAnimation, animator.m_CurrentTime, animator.m_CurrentTime2, blendAmount);
+					if (blendAmount > 0.9f) {
+						blendAmount = 0.0f;
+						float startTime = animator.m_CurrentTime2;
+						animator.PlayAnimation(&runAnimation, NULL, startTime, 0.0f, blendAmount);
+						charState = RUN;
 					}
 				}
 				break;
