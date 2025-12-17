@@ -22,6 +22,16 @@ This assignment implements a third-person character controller with skeletal ani
 - **Ground Plane**: Simple platform rendering underneath the character
 - **Light Blue Sky**: Atmospheric background color
 
+Picture and Video
+
+<img width="636" height="484" alt="Screenshot 2568-12-18 at 00 26 40" src="https://github.com/user-attachments/assets/576bab5e-457a-4e1b-8215-09870d56cf53" />
+
+
+https://github.com/user-attachments/assets/70ecc2f1-d7ee-421d-947b-557e9ee74f6b
+
+
+
+
 ## Controls
 
 ### Movement
@@ -47,18 +57,6 @@ This assignment implements a third-person character controller with skeletal ani
 - **Esc** — Exit application
 
 ## Implementation Details
-
-### Animation State Machine
-
-The character uses a state machine with the following states:
-
-- `IDLE` — Default standing position
-- `IDLE_WALK` / `WALK_IDLE` — Blending between idle and walk
-- `WALK` — Walking animation loop
-- `RUN` — Running animation loop
-- `WALK_RUN` / `RUN_WALK` — Smooth blending between walk and run speeds
-- `IDLE_PUNCH` / `PUNCH_IDLE` — Punch animation with blending
-- `IDLE_KICK` / `KICK_IDLE` — Kick animation with blending
 
 ### Animation Blending
 
